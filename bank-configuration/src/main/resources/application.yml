@@ -1,0 +1,16 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: spring-cloud-bank-configuration
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: classpath:/configurations/
+    zookeeper:
+      discovery:
+        enabled: true
+      connect-string: localhost:2181

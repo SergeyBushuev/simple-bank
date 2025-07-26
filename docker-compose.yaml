@@ -1,0 +1,258 @@
+version: '3'
+services:
+
+  bank-configuration-app:
+    image: bank-configuration-app:latest
+    build:
+      context: .
+      dockerfile: bank-configuration/Dockerfile
+    environment:
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+    ports:
+      - "8888:8888"
+    depends_on:
+      - zookeeper
+    networks:
+      - bank_network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    tmpfs: "/datalog"
+    ports:
+      - "22181:2181"
+    networks:
+      - bank_network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.3
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
+    command: start-dev --import-realm
+    networks:
+      - bank_network
+
+  accounts-postgres:
+    image: postgres:16.1-alpine
+    environment:
+      POSTGRES_DB: accounts-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - bank_network
+
+  exchange-postgres:
+    image: postgres:16.1-alpine
+    environment:
+      POSTGRES_DB: exchange-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - bank_network
+
+  notifications-postgres:
+    image: postgres:16.1-alpine
+    environment:
+      POSTGRES_DB: notifications-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    networks:
+      - bank_network
+
+  bank-front-app:
+    image: bank-front-app:latest
+    build:
+      context: .
+      dockerfile: bank-front/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_ID: simple-bank-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_SECRET: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_PROVIDER: keycloak
+    ports:
+      - "8079:8079"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-exchange-app:
+    image: bank-exchange-app:latest
+    build:
+      context: .
+      dockerfile: bank-exchange/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_ID: simple-bank-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_SECRET: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_PROVIDER: keycloak
+    ports:
+      - "8081:8081"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-transfer-app:
+    image: bank-transfer-app:latest
+    build:
+      context: .
+      dockerfile: bank-transfer/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_ID: simple-bank-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_SECRET: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_PROVIDER: keycloak
+    ports:
+      - "8082:8082"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-blocker-app:
+    image: bank-blocker-app:latest
+    build:
+      context: .
+      dockerfile: bank-blocker/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+    ports:
+      - "8083:8083"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-accounts-app:
+    image: bank-accounts-app:latest
+    build:
+      context: .
+      dockerfile: bank-accounts/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_ID: simple-bank-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_SECRET: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_PROVIDER: keycloak
+      SPRING_R2DBC_URL: r2dbc:postgresql://accounts-postgres:5432/accounts-db
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+    ports:
+      - "8084:8084"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-exchange-generator-app:
+    image: bank-exchange-generator-app:latest
+    build:
+      context: .
+      dockerfile: bank-exchange-generator/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_R2DBC_URL: r2dbc:postgresql://exchange-postgres:5432/exchange-db
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+    ports:
+      - "8085:8085"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-cash-app:
+    image: bank-cash-app:latest
+    build:
+      context: .
+      dockerfile: bank-cash/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_ID: simple-bank-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_SECRET: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_PROVIDER: keycloak
+    ports:
+      - "8086:8086"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  bank-notifications-app:
+    image: bank-notifications-app:latest
+    build:
+      context: .
+      dockerfile: bank-notifications/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_R2DBC_URL: r2dbc:postgresql://notifications-postgres:5432/notifications-db
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+    ports:
+      - "8087:8087"
+    restart: on-failure
+    networks:
+      - bank_network
+
+  gateway-server-app:
+    image: gateway-server-app:latest
+    build:
+      context: .
+      dockerfile: gateway-server/Dockerfile
+    environment:
+      CONFIG_SERVER_URL: http://bank-configuration-app:8888
+      SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
+      SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_ID: simple-bank-client
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_CLIENT_SECRET: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_simple-bank_CLIENT_PROVIDER: keycloak
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    networks:
+      - bank_network
+
+networks:
+  bank_network:

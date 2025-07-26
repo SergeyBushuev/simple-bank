@@ -1,0 +1,16 @@
+server:
+  port: ${services.bank-blocker.port}
+
+spring:
+
+  cloud:
+    zookeeper:
+      discovery:
+        enabled: true
+      connect-string: localhost:2181
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/simple-bank/protocol/openid-connect/certs

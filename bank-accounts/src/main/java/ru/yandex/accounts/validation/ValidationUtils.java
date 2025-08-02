@@ -64,7 +64,7 @@ public final class ValidationUtils {
         }
         if (cashRequest.getAction() == CashAction.GET) {
             if (account.getBalance().subtract(subtract).compareTo(BigDecimal.ZERO) < 0) {
-                errors.add("Не достаточно средств для снятия "
+                errors.add("Not enough funds "
                         + cashRequest.getCurrency() + " "
                         + cashRequest.getValue());
             }

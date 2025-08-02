@@ -174,7 +174,7 @@ public class AccountsController {
                         .status(HttpStatus.OK)
                         .body(CashProcessResponse.builder()
                                 .status("error")
-                                .errors(List.of("Аккаунт не найден " + cashRequest.getCurrency()))
+                                .errors(List.of("Account not found " + cashRequest.getCurrency()))
                                 .build())));
     }
 

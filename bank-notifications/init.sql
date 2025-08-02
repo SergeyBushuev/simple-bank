@@ -1,0 +1,7 @@
+CREATE TABLE notifications
+(
+    id      BIGSERIAL PRIMARY KEY,
+    login   VARCHAR(255) NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    time    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -47,19 +47,10 @@ services:
       POSTGRES_DB: accounts-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./bank-accounts/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
-    networks:
-      - bank_network
-
-  exchange-postgres:
-    image: postgres:16.1-alpine
-    environment:
-      POSTGRES_DB: exchange-db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
     networks:
       - bank_network
 
@@ -69,6 +60,8 @@ services:
       POSTGRES_DB: notifications-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./bank-notifications/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5434:5432"
     networks:

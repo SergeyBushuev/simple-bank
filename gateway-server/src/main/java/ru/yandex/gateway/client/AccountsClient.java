@@ -38,7 +38,7 @@ public class AccountsClient {
 
     private Mono<SignupResponse> signupFallback() {
         return Mono.just(SignupResponse.builder()
-                .errors(List.of("Ошибка соединения с сервером"))
+                .errors(List.of("Connection error"))
                 .build());
     }
 }

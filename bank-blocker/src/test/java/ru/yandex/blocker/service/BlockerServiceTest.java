@@ -12,7 +12,7 @@ class BlockerServiceTest {
     private final BlockerService blockerService = new BlockerService();
 
     @Test
-    void shouldBlockAt21Hours() {
+    void blockerServiceTest_BlockTest() {
         BigDecimal value = BigDecimal.valueOf(200000);
         Boolean result = blockerService.isBlocked(value).block();
 
@@ -20,7 +20,7 @@ class BlockerServiceTest {
     }
 
     @Test
-    void shouldNotBlockBefore21Hours() {
+    void blockerServiceTest_NotBlockTest() {
         BigDecimal value = BigDecimal.valueOf(2000);
         Boolean result = blockerService.isBlocked(value).block();
         assertEquals(Boolean.FALSE, result);

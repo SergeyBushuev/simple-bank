@@ -29,9 +29,9 @@ public class CashService {
     private final BlockersClient blockersClient;
     private final NotificationsClient notificationsClient;
 
-    private static final String SUCCESS_MESSAGE = "Успешное пополнение счета:";
-    private static final String FAIL_MESSAGE = "Ошибка пополнения счета:";
-    private static final String BLOCKED_MESSAGE = "Операция по пополнению счета заблокирована:";
+    private static final String SUCCESS_MESSAGE = "Transaction successful: ";
+    private static final String FAIL_MESSAGE = "Transfer error: ";
+    private static final String BLOCKED_MESSAGE = "Transaction blocked: ";
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 

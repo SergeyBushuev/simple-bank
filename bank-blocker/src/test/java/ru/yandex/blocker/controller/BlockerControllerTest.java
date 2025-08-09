@@ -35,7 +35,7 @@ class BlockerControllerTest {
     }
 
     @Test
-    void postUserNotification_returnsTrue() {
+    void transactionBlocked_OkTest() {
         webTestClient.post()
                 .uri(uri -> uri
                         .path("/api/block/{value}")
@@ -47,7 +47,7 @@ class BlockerControllerTest {
     }
 
     @Test
-    void postUserNotification_returnsFalse() {
+    void transactionNotBlocked_OkTest() {
         webTestClient.post()
                 .uri(uri -> uri
                         .path("/api/block/{value}")
@@ -59,7 +59,7 @@ class BlockerControllerTest {
     }
 
     @Test
-    void postUserNotification_serviceError() {
+    void transactionBlocker_ErrorTest() {
         BigDecimal bdValue = BigDecimal.valueOf(2000);
         when(blockerService.isBlocked(bdValue)).thenReturn(Mono.error(new RuntimeException("failed")));
 

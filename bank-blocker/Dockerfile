@@ -1,4 +1,10 @@
+FROM gradle:8.5-jdk21 AS build
+WORKDIR /app
+COPY ../.. .
+COPY ../commons .
+RUN gradle :bank-blocker:build -x test
+
 FROM amazoncorretto:21-alpine
 WORKDIR /app
-COPY bank-blocker/build/libs/*.jar app.jar
+COPY --from=build bank-blocker/build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

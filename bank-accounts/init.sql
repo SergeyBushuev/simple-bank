@@ -21,5 +21,5 @@ CREATE TABLE accounts
 );
 
 INSERT INTO users (login, password, name, birthdate, role)
-VALUES ('user', '$2a$10$wXPY16G/JEgBmr83E993Pucpj83S1pNqw6uvnilWzYexYS2AtKDJi', 'user name', '2000-01-01', 'USER'),
-       ('user2', '$2a$10$A.s/ZPIkfcFJROxHwAYNbOQVGP1dMslrcFs5jWgtanyVJwTO3BWo2', 'Петр Петров', '2000-01-02', 'USER')
+VALUES ('user', '$2a$10$wXPY16G/JEgBmr83E993Pucpj83S1pNqw6uvnilWzYexYS2AtKDJi', 'user namovich', '2000-01-01', 'USER'),
+       ('user2', '$2a$10$A.s/ZPIkfcFJROxHwAYNbOQVGP1dMslrcFs5jWgtanyVJwTO3BWo2', 'user userovich', '2000-01-02', 'USER')

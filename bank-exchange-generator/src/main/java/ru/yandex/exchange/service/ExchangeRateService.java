@@ -24,15 +24,15 @@ public class ExchangeRateService {
 
     private static final Supplier<BigDecimal> BYN = () -> {
         Random rand = new Random();
-        return BigDecimal.valueOf(rand.nextDouble(85.0, 96.0));
+        return BigDecimal.valueOf(rand.nextDouble(23.0, 26.0));
     };
     static {
         rates.put("BYN", BYN);
         rates.put("USD", USD);
         rates.put("RUB", () -> BigDecimal.ONE);
-        ratesNames.put("USD", "Доллар");
-        ratesNames.put("RUB", "Рубль");
-        ratesNames.put("BYN", "Беларусский рубль");
+        ratesNames.put("USD", "US Dollar");
+        ratesNames.put("RUB", "Ruble");
+        ratesNames.put("BYN", "Belorussian ruble");
     }
 
     public Flux<CurrencyDto> getAllCurrentRates() {

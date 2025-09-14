@@ -1,0 +1,183 @@
+# Simple-bank Umbrella Chart Values
+# This file contains configuration for all subcharts
+
+# Global settings
+global:
+  namespace: simple-bank
+  environment: development
+
+# Infrastructure Dependencies
+keycloak:
+  enabled: true
+  keycloak:
+    hostname: keycloak.simple-bank.local
+    admin:
+      username: admin
+      password: admin
+    database:
+      vendor: ""  # Empty to disable database configuration for dev mode
+  ingress:
+    enabled: true
+    hosts:
+      - host: keycloak.simple-bank.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+postgresql-accounts:
+  enabled: true
+  postgresql:
+    database: accounts-db
+    username: postgres
+    password: postgres
+
+postgresql-exchange:
+  enabled: true
+  postgresql:
+    database: exchange-db
+    username: postgres
+    password: postgres
+
+postgresql-notifications:
+  enabled: true
+  postgresql:
+    database: notifications-db
+    username: postgres
+    password: postgres
+
+# Microservices
+service-gateway:
+  enabled: true
+  image:
+    repository: service-gateway-app
+    tag: latest
+  service:
+    port: 8080
+    targetPort: 8080
+  ingress:
+    enabled: true
+    hosts:
+      - host: simple-bank.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+bank-front:
+  enabled: true
+  image:
+    repository: bank-front-app
+    tag: latest
+  service:
+    port: 8079
+    targetPort: 8079
+  ingress:
+    enabled: false
+
+bank-accounts:
+  enabled: true
+  image:
+    repository: bank-accounts-app
+    tag: latest
+  service:
+    port: 8084
+    targetPort: 8084
+  ingress:
+    enabled: false
+
+bank-cash:
+  enabled: true
+  image:
+    repository: bank-cash-app
+    tag: latest
+  service:
+    port: 8086
+    targetPort: 8086
+  ingress:
+    enabled: false
+
+bank-exchange:
+  enabled: true
+  image:
+    repository: bank-exchange-app
+    tag: latest
+  service:
+    port: 8081
+    targetPort: 8081
+  ingress:
+    enabled: false
+
+bank-exchange-generator:
+  enabled: true
+  image:
+    repository: bank-exchange-generator-app
+    tag: latest
+  service:
+    port: 8085
+    targetPort: 8085
+  ingress:
+    enabled: false
+
+bank-transfer:
+  enabled: true
+  image:
+    repository: bank-transfer-app
+    tag: latest
+  service:
+    port: 8082
+    targetPort: 8082
+  ingress:
+    enabled: false
+
+bank-blocker:
+  enabled: true
+  image:
+    repository: bank-blocker-app
+    tag: latest
+  service:
+    port: 8083
+    targetPort: 8083
+  ingress:
+    enabled: false
+
+bank-notifications:
+  enabled: true
+  image:
+    repository: bank-notifications-app
+    tag: latest
+  service:
+    port: 8087
+    targetPort: 8087
+  ingress:
+    enabled: false
+
+# Environment-specific configurations
+environments:
+  development:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+  
+  testing:
+    replicas: 2
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  
+  production:
+    replicas: 3
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2Gi
+      requests:
+        cpu: 1000m
+        memory: 1Gi

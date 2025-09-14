@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bank-front.fullname" . }}-config
+  labels:
+    {{- include "bank-front.labels" . | nindent 4 }}
+data:
+  # OAuth2 Configuration
+  oauth2-resource-server-jwk-set-uri: "http://simple-bank-keycloak:8080/realms/simple-bank/protocol/openid-connect/certs"
+  oauth2-client-provider-authorization-uri: "http://simple-bank-keycloak:8080/realms/simple-bank/protocol/openid-connect/auth"
+  oauth2-client-provider-token-uri: "http://simple-bank-keycloak:8080/realms/simple-bank/protocol/openid-connect/token"
+  oauth2-client-provider-jwk-set-uri: "http://simple-bank-keycloak:8080/realms/simple-bank/protocol/openid-connect/certs"
+  oauth2-client-id: "simple-bank-client"
+  oauth2-client-provider: "keycloak"

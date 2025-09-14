@@ -142,7 +142,11 @@ public class TransferService {
                 });
     }
 
-    private Mono<ResponseEntity<Void>> handleResponseErrors(String login, TransferRequest transferRequest, CashProcessResponse depositResponse, List<String> transferErrors, List<String> transferOtherErrors) {
+    private Mono<ResponseEntity<Void>> handleResponseErrors(String login,
+                                                            TransferRequest transferRequest,
+                                                            CashProcessResponse depositResponse,
+                                                            List<String> transferErrors,
+                                                            List<String> transferOtherErrors) {
         if (!COMPLETED.equals(depositResponse.getStatus())) {
             String message = FAIL_MESSAGE +
                     String.join(", ", depositResponse.getErrors());

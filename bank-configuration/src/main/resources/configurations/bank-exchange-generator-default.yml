@@ -2,6 +2,8 @@ server:
   port: ${services.bank-exchange-generator.port}
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   cloud:
     zookeeper:
       discovery:

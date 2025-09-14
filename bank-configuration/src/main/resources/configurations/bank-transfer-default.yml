@@ -2,6 +2,8 @@ server:
   port: ${services.bank-transfer.port}
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   cloud:
     zookeeper:
       discovery:

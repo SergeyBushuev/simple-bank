@@ -1,5 +1,9 @@
 rootProject.name = "simple-bank"
-
+pluginManagement {
+    repositories {
+        mavenCentral()
+    }
+}
 include(
     "bank-configuration",
     "gateway-server",

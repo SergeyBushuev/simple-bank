@@ -2,7 +2,8 @@ server:
   port: ${services.bank-front.port}
 
 spring:
-
+  main:
+    allow-bean-definition-overriding: true
   cloud:
     zookeeper:
       discovery:

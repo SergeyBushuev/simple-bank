@@ -5,7 +5,6 @@ pluginManagement {
     }
 }
 include(
-    "bank-configuration",
     "gateway-server",
     "bank-accounts",
     "bank-exchange-generator",

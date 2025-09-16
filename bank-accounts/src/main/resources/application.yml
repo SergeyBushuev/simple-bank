@@ -1,10 +1,65 @@
-spring:
-  autoconfigure:
-    exclude:
-  # Service Discovery
-  application:
-    name: bank-accounts
+server:
+  port: 8084
 
-  # Config Server
-  config:
-    import: configserver:${CONFIG_SERVER_URL:http://127.0.0.1:8888}
+  main:
+    allow-bean-definition-overriding: true # убрать после dev
+
+  cloud:
+
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: service-front-route
+              uri: http://simple-bank-service-gateway:8080
+              predicates:
+                - Path=/
+              filters:
+                - TokenRelay=simple-bank-client
+
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            token-uri: http://localhost:8180/realms/simple-bank/protocol/openid-connect/token
+            authorization-uri: http://localhost:8180/realms/simple-bank/protocol/openid-connect/auth
+            jwk-set-uri: http://localhost:8180/realms/simple-bank/protocol/openid-connect/certs
+        registration:
+          simple-bank-client:
+            client-id: simple-bank-client
+            client-secret: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+            authorization-grant-type: client_credentials
+            scope: openid
+            provider: keycloak
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: true
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/accounts-db
+    username: postgres
+    password: postgres
+
+headers:
+  user-header: X-User-Login
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    web: info
+    org.springframework.security: info
+
+services:
+  service-gateway:
+    name: "simple-bank-service-gateway:8080"

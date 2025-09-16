@@ -1,9 +1,34 @@
+server:
+  port: 8083
+
 spring:
-
-  # Service Discovery
   application:
-    name: bank-blocker
+    name: service-blocker
+  main:
+    allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/simple-bank/protocol/openid-connect/certs
 
-  # Config Server
-  config:
-    import: configserver:${CONFIG_SERVER_URL:http://127.0.0.1:8888}
+headers:
+  user-header: X-User-Login
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    web: info
+    org.springframework.security: info
+
+services:
+  service-gateway:
+    name: "simple-bank-service-gateway:8080"

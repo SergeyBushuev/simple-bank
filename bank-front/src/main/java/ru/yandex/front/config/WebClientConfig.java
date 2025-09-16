@@ -15,14 +15,14 @@ public class WebClientConfig {
     private String keycloakClient;
 
     @Bean
-    @LoadBalanced
+    
     public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
     }
 
     @Bean
     public WebClient webClient(
-            @LoadBalanced WebClient.Builder webClientBuilder,
+             WebClient.Builder webClientBuilder,
             ReactiveOAuth2AuthorizedClientManager authorizedClientManager
     ) {
         ServerOAuth2AuthorizedClientExchangeFilterFunction oauth2Client =

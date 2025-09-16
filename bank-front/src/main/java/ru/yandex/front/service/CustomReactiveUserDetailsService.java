@@ -16,7 +16,7 @@ import java.util.List;
 public class CustomReactiveUserDetailsService implements ReactiveUserDetailsService {
 
     private final WebClient accountsClient;
-    private static final String ACCOUNTS_BASE_URL = "http://bank-accounts";
+    private static final String ACCOUNTS_BASE_URL = "http://simple-bank-bank-accounts";
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {

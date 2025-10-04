@@ -18,7 +18,7 @@ public class KafkaNotificationService {
     @Value("${kafka-topics.notifications-topic}")
     private String notificationsTopic;
 
-    public void sendNotificationsMessage(String key, NotificationDto message) {
+    public void sendNotification(String key, NotificationDto message) {
         ProducerRecord<String, Object> producerRecord = new ProducerRecord<>(notificationsTopic, key, message);
         kafkaTemplate.send(producerRecord);
         log.info("Отправлено сообщение {} в топик {}", message, notificationsTopic);

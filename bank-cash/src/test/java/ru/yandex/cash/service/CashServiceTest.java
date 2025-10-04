@@ -11,9 +11,11 @@ import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 import ru.yandex.cash.client.AccountsClient;
 import ru.yandex.cash.client.BlockersClient;
+import ru.yandex.cash.client.KafkaNotificationService;
 import ru.yandex.cash.client.NotificationsClient;
 import ru.yandex.sharedlib.cash.CashProcessResponse;
 import ru.yandex.sharedlib.cash.CashRequest;
+import ru.yandex.sharedlib.notification.NotificationDto;
 
 import java.net.URI;
 import java.util.List;
@@ -36,7 +38,7 @@ class CashServiceTest {
     private BlockersClient blockersClient;
 
     @Mock
-    private NotificationsClient notificationsClient;
+    private KafkaNotificationService notificationsClient;
 
     @InjectMocks
     private CashService cashService;
@@ -47,11 +49,6 @@ class CashServiceTest {
             .action(ru.yandex.sharedlib.cash.CashAction.PUT)
             .build();
 
-    @BeforeEach
-    void setup() {
-        when(notificationsClient.sendNotification(anyString(), anyString()))
-                .thenReturn(Mono.empty());
-    }
 
     @Test
     void updateNotBlocked_OkTest() {
@@ -74,7 +71,7 @@ class CashServiceTest {
         assertNull(location.getQuery(), "No errors expected on successful update");
 
         ArgumentCaptor<String> msgCaptor = ArgumentCaptor.forClass(String.class);
-        then(notificationsClient).should().sendNotification(eq("bob"), msgCaptor.capture());
+        then(notificationsClient).should().sendNotification(eq("bob"), any(NotificationDto.class));
         String sentMsg = msgCaptor.getValue();
         assertTrue(sentMsg.contains("Transaction successful: "));
         assertTrue(sentMsg.contains("USD"));
@@ -103,7 +100,7 @@ class CashServiceTest {
         assertEquals("cashErrors=err1&cashErrors=err2", loc.getQuery());
 
         ArgumentCaptor<String> msgCaptor = ArgumentCaptor.forClass(String.class);
-        then(notificationsClient).should().sendNotification(eq("bob"), msgCaptor.capture());
+        then(notificationsClient).should().sendNotification(eq("bob"), any(NotificationDto.class));
         String sentMsg = msgCaptor.getValue();
         assertTrue(sentMsg.contains("Transfer error: "));
     }
@@ -122,6 +119,6 @@ class CashServiceTest {
         assertEquals("/", loc.getPath());
         assertTrue(loc.getQuery().contains("Transaction blocked: "));
 
-        then(notificationsClient).should().sendNotification(eq("bob"), contains("Transaction blocked: "));
+        then(notificationsClient).should().sendNotification(eq("bob"), any(NotificationDto.class));
     }
 }

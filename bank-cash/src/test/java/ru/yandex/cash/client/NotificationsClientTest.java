@@ -1,81 +1,58 @@
 package ru.yandex.cash.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.kafka.core.KafkaTemplate;
 import ru.yandex.sharedlib.notification.NotificationDto;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
-class NotificationsClientTest {
+@SpringBootTest(classes = KafkaNotificationService.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = "kafka-topics.notifications-topic=topic-bankapp-notifications")
+class NotificationsProducerServiceTest {
 
-    private WireMockServer wireMock;
-    private NotificationsClient notificationsClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private KafkaNotificationService notificationsProducerService;
 
-    @BeforeEach
-    void setup() throws Exception {
-        wireMock = new WireMockServer(
-                WireMockConfiguration.options()
-                        .dynamicPort());
-        wireMock.start();
+    @MockBean
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
-        WebClient webClient = WebClient.builder().build();
-        notificationsClient = new NotificationsClient(webClient);
-        ReflectionTestUtils.setField(
-                notificationsClient,
-                "gateway",
-                "localhost:" + wireMock.port()
-        );
+    @Test
+    void sendMessage_OkTest() {
+        String testKey = "user123";
+        NotificationDto testNotification = new NotificationDto("user123", "Test notification message");
 
-        wireMock.stubFor(post(urlPathEqualTo("/api/bob/notifications"))
-                .withHeader("Content-Type", containing("application/json"))
-                .withRequestBody(equalTo("Success"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json;charset=UTF-8")
-                        .withBody(objectMapper.writeValueAsString(getNotification()))
-                ));
-    }
+        notificationsProducerService.sendNotification(testKey, testNotification);
 
-    @AfterEach
-    void clear() {
-        wireMock.stop();
+        verify(kafkaTemplate, times(1)).send(any(ProducerRecord.class));
     }
 
     @Test
-    void sendNotification_OkTest() {
-        Mono<NotificationDto> mono = notificationsClient.sendNotification("bob", "Success");
-        NotificationDto result = mono.block();
+    void sendSeveralMessages_OkTest() {
+        NotificationDto notification1 = new NotificationDto("user1", "Message 1");
+        NotificationDto notification2 = new NotificationDto("user2", "Message 2");
 
-        assertNotNull(result);
-        assertEquals("Success", result.getMessage());
+        notificationsProducerService.sendNotification("key1", notification1);
+        notificationsProducerService.sendNotification("key2", notification2);
+
+        verify(kafkaTemplate, times(2)).send(any(ProducerRecord.class));
     }
 
     @Test
-    void sendNotification_ExceptionTest() {
-        wireMock.stubFor(post(urlPathEqualTo("/api/alice/notifications"))
-                .willReturn(aResponse().withStatus(500)));
+    void sendMessageToSamePartition_OkTest() {
+        String sameKey = "user123";
+        NotificationDto notification1 = new NotificationDto("user123", "First message");
+        NotificationDto notification2 = new NotificationDto("user123", "Second message");
 
-        assertThrows(Exception.class, () -> notificationsClient.sendNotification("alice", "Test").block());
-    }
+        notificationsProducerService.sendNotification(sameKey, notification1);
+        notificationsProducerService.sendNotification(sameKey, notification2);
 
-    private NotificationDto getNotification() {
-        return NotificationDto.builder()
-                .message("Success")
-                .build();
+        verify(kafkaTemplate, times(2)).send(any(ProducerRecord.class));
     }
 }

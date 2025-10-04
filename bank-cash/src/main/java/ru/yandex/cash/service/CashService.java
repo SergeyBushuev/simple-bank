@@ -10,9 +10,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import ru.yandex.cash.client.AccountsClient;
 import ru.yandex.cash.client.BlockersClient;
-import ru.yandex.cash.client.NotificationsClient;
+import ru.yandex.cash.client.KafkaNotificationService;
 import ru.yandex.sharedlib.cash.CashProcessResponse;
 import ru.yandex.sharedlib.cash.CashRequest;
+import ru.yandex.sharedlib.notification.NotificationDto;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -27,7 +28,7 @@ public class CashService {
 
     private final AccountsClient accountsClient;
     private final BlockersClient blockersClient;
-    private final NotificationsClient notificationsClient;
+    private final KafkaNotificationService notificationsClient;
 
     private static final String SUCCESS_MESSAGE = "Transaction successful: ";
     private static final String FAIL_MESSAGE = "Transfer error: ";
@@ -47,14 +48,14 @@ public class CashService {
                                     CashProcessResponse body = response.getBody();
                                     log.info("тело ответа {}", body);
                                     if (body != null && "completed".equals(body.getStatus())) {
-                                        notificationsClient.sendNotification(login, formatMessage(SUCCESS_MESSAGE, cashRequest)).subscribe();
+                                        notificationsClient.sendNotification(login, new NotificationDto(login, formatMessage(SUCCESS_MESSAGE, cashRequest)));
                                     } else {
-                                        notificationsClient.sendNotification(login, formatMessage(FAIL_MESSAGE, cashRequest)).subscribe();
+                                        notificationsClient.sendNotification(login, new NotificationDto(login, formatMessage(FAIL_MESSAGE, cashRequest)));
                                     }
                                 })
                                 .flatMap(response -> redirectToMain(response.getBody().getErrors()));
                     } else {
-                        notificationsClient.sendNotification(login, formatMessage(BLOCKED_MESSAGE, cashRequest)).subscribe();
+                        notificationsClient.sendNotification(login, new NotificationDto(login, formatMessage(BLOCKED_MESSAGE, cashRequest)));
                         return redirectToMain(List.of(BLOCKED_MESSAGE));
                     }
                 });

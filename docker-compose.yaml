@@ -1,6 +1,32 @@
 version: '3'
 services:
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - app_network
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.3
     environment:
@@ -67,6 +93,7 @@ services:
       context: .
       dockerfile: bank-exchange/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
@@ -86,6 +113,7 @@ services:
       context: .
       dockerfile: bank-transfer/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
@@ -105,6 +133,7 @@ services:
       context: .
       dockerfile: bank-blocker/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
     ports:
       - "8083:8083"
@@ -118,6 +147,7 @@ services:
       context: .
       dockerfile: bank-accounts/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
@@ -140,6 +170,7 @@ services:
       context: .
       dockerfile: bank-exchange-generator/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_R2DBC_URL: r2dbc:postgresql://exchange-postgres:5432/exchange-db
       SPRING_R2DBC_USERNAME: postgres
@@ -156,6 +187,7 @@ services:
       context: .
       dockerfile: bank-cash/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token
@@ -175,6 +207,7 @@ services:
       context: .
       dockerfile: bank-notifications/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_R2DBC_URL: r2dbc:postgresql://notifications-postgres:5432/notifications-db
       SPRING_R2DBC_USERNAME: postgres
@@ -191,6 +224,7 @@ services:
       context: .
       dockerfile: gateway-server/Dockerfile
     environment:
+      KAFKA_BROKERS: kafka:29092
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/certs
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_AUTHORIZATION_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/auth
       SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/simple-bank/protocol/openid-connect/token

@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("org.springframework.kafka:spring-kafka:3.3.8")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
 
     implementation(project(":commons"))
@@ -32,6 +33,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
+    testImplementation("org.springframework.kafka:spring-kafka-test:3.3.8")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.wiremock:wiremock-standalone:3.3.1")

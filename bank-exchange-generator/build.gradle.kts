@@ -24,6 +24,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("org.springframework.kafka:spring-kafka:3.3.8")
 
     implementation(project(":commons"))
 
@@ -33,6 +34,10 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.kafka:spring-kafka-test:3.3.8")
+    testImplementation("org.testcontainers:junit-jupiter:1.19.0")
+    testImplementation("org.testcontainers:postgresql:1.19.0")
+    testImplementation("org.testcontainers:r2dbc:1.19.0")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testCompileOnly("org.projectlombok:lombok")

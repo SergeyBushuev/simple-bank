@@ -19,6 +19,16 @@ spring:
     url: r2dbc:postgresql://localhost:5433/exchange-db
     username: postgres
     password: postgres
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: 0
+      retries: 0
+
+kafka-topics:
+  exchange-rates-topic: topic-bankapp-exchange-rates
 
 headers:
   user-header: X-User-Login

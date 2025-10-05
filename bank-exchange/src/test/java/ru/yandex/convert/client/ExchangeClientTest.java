@@ -1,91 +1,64 @@
 package ru.yandex.convert.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
+import ru.yandex.convert.config.KafkaClientConfig;
+import ru.yandex.convert.config.KafkaBrokerTestConfig;
+import ru.yandex.convert.config.PostgresTestContainer;
 import ru.yandex.sharedlib.account.CurrencyDto;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
 
-class ExchangeClientTest {
+@SpringBootTest(
+        properties = {
+                "kafka-topics.exchange-rates-topic=topic-bankapp-exchange-rates",
+                "spring.application.name=service-convert-test",
+                "spring.liquibase.enabled=false",
+                "spring.security.oauth2.resourceserver.jwt.issuer-uri=",
+                "spring.security.oauth2.resourceserver.jwt.jwk-set-uri="},
+        classes = {ExchangeListener.class, KafkaClientConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@EmbeddedKafka(topics = {"topic-bankapp-exchange-rates"})
+public class ExchangeClientTest extends PostgresTestContainer {
 
-    private WireMockServer wireMock;
-    private ExchangeClient exchangeClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @BeforeEach
-    void setup() throws Exception {
-        wireMock = new WireMockServer(WireMockConfiguration.options().dynamicPort());
-        wireMock.start();
-
-        WebClient webClient = WebClient.builder().build();
-        exchangeClient = new ExchangeClient(webClient);
-        ReflectionTestUtils.setField(
-                exchangeClient,
-                "gateway",
-                "localhost:" + wireMock.port()
-        );
-
-        List<CurrencyDto> stubCurrencies = List.of(
-                new CurrencyDto("USD", "Dollar", BigDecimal.valueOf(1.0)),
-                new CurrencyDto("EUR", "Euro", BigDecimal.valueOf(0.9))
-        );
-        String responseJson = objectMapper.writeValueAsString(stubCurrencies);
-
-        wireMock.stubFor(get(urlPathEqualTo("/api/rates"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json;charset=UTF-8")
-                        .withBody(responseJson)
-                ));
-    }
-
-    @AfterEach
-    void clear() {
-        wireMock.stop();
-    }
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafkaBroker;
 
     @Test
-    void getCurrencies_OkTest() {
-        Flux<CurrencyDto> flux = exchangeClient.getCurrencies();
-        List<CurrencyDto> currencies = flux.collectList().block();
+    public void testExchangeRateListenerProcessesMessage() {
+        String testCurrency = "USD";
+        BigDecimal testRate = new BigDecimal("74.50");
+        CurrencyDto currencyDto = CurrencyDto.builder()
+                .title(testCurrency)
+                .name("US Dollar")
+                .value(testRate)
+                .build();
 
-        assertNotNull(currencies);
-        assertEquals(2, currencies.size());
+        Map<String, Object> consumerProps = KafkaBrokerTestConfig.createConsumerProps(embeddedKafkaBroker);
 
-        CurrencyDto usd = currencies.getFirst();
-        assertEquals("USD", usd.getTitle());
-        assertEquals("Dollar", usd.getName());
-        assertEquals(0, usd.getValue().compareTo(BigDecimal.valueOf(1.0)));
+        try (var consumerForTest = new DefaultKafkaConsumerFactory<String, CurrencyDto>(consumerProps).createConsumer()) {
+            consumerForTest.subscribe(List.of("topic-bankapp-exchange-rates"));
 
-        CurrencyDto eur = currencies.get(1);
-        assertEquals("EUR", eur.getTitle());
-        assertEquals("Euro", eur.getName());
-        assertEquals(0, eur.getValue().compareTo(BigDecimal.valueOf(0.9)));
-    }
+            kafkaTemplate.send("topic-bankapp-exchange-rates", testCurrency, currencyDto);
 
-    @Test
-    void getCurrencies_5xxErrorTest() {
-        wireMock.stubFor(get(urlPathEqualTo("/api/rates"))
-                .willReturn(aResponse().withStatus(500))
-        );
-
-        assertThrows(Exception.class,
-                () -> exchangeClient.getCurrencies().collectList().block()
-        );
+            var receivedMessage = KafkaTestUtils.getSingleRecord(consumerForTest, "topic-bankapp-exchange-rates", Duration.ofSeconds(5));
+            assertThat(receivedMessage.key()).isEqualTo(testCurrency);
+            assertThat(receivedMessage.value().getTitle()).isEqualTo(testCurrency);
+            assertThat(receivedMessage.value().getValue()).isEqualTo(testRate);
+        }
     }
 }

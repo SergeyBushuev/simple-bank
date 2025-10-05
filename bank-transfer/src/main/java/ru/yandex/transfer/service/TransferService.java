@@ -13,11 +13,12 @@ import ru.yandex.sharedlib.account.AccountDto;
 import ru.yandex.sharedlib.cash.CashAction;
 import ru.yandex.sharedlib.cash.CashProcessResponse;
 import ru.yandex.sharedlib.cash.CashRequest;
+import ru.yandex.sharedlib.notification.NotificationDto;
 import ru.yandex.sharedlib.transfer.TransferRequest;
 import ru.yandex.transfer.client.AccountsClient;
 import ru.yandex.transfer.client.BlockersClient;
 import ru.yandex.transfer.client.ConvertClient;
-import ru.yandex.transfer.client.NotificationsClient;
+import ru.yandex.transfer.client.NotificationsKafkaClient;
 import ru.yandex.transfer.exception.AccountNotFoundException;
 import ru.yandex.transfer.exception.InsufficientFundsException;
 import ru.yandex.transfer.exception.TransferException;
@@ -36,7 +37,7 @@ public class TransferService {
 
     private final AccountsClient accountsClient;
     private final BlockersClient blockersClient;
-    private final NotificationsClient notificationsClient;
+    private final NotificationsKafkaClient notificationsProducer;
     private final ConvertClient convertClient;
 
     private static final String SUCCESS_MESSAGE = "Transaction successful: ";
@@ -54,7 +55,7 @@ public class TransferService {
         return blockersClient.sendBlockerRequest(value)
                 .flatMap(blocked -> {
                     if (blocked) {
-                        notificationsClient.sendNotification(login, formatMessage(BLOCKED_MESSAGE, transferRequest)).subscribe();
+                        notificationsProducer.sendNotificationsMessage(login, new NotificationDto(login, formatMessage(BLOCKED_MESSAGE, transferRequest)));
                         handleErrors(BLOCKED_MESSAGE, login, transferRequest.getToLogin(), transferErrors, transferOtherErrors);
                         return redirectToMain(transferErrors, transferOtherErrors);
                     }
@@ -78,11 +79,11 @@ public class TransferService {
                                             transferOtherErrors))
                                     .doOnSuccess(v -> {
                                         String message = formatMessage(SUCCESS_MESSAGE, transferRequest);
-                                        notificationsClient.sendNotification(login, message).subscribe();
+                                        notificationsProducer.sendNotificationsMessage(login, new NotificationDto(login, message));
                                     }))
                             .onErrorResume(ex -> {
                                 String errorMessage = formatMessage("Ошибка перевода: " + ex.getMessage(), transferRequest);
-                                notificationsClient.sendNotification(login, errorMessage).subscribe();
+                                notificationsProducer.sendNotificationsMessage(login, new NotificationDto(login, errorMessage));
                                 return redirectToMain(transferErrors, transferOtherErrors);
                             });
                 });

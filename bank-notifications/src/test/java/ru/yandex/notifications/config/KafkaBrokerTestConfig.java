@@ -1,4 +1,4 @@
-package ru.yandex.convert.config;
+package ru.yandex.notifications.config;
 
 import lombok.experimental.UtilityClass;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

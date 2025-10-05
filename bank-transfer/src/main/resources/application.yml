@@ -7,3 +7,13 @@ spring:
   # Config Server
   config:
     import: configserver:${CONFIG_SERVER_URL:http://127.0.0.1:8888}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:kafka:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+
+kafka-topics:
+  notifications-topic: topic-bankapp-notifications

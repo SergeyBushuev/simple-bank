@@ -14,11 +14,9 @@ import reactor.core.publisher.Mono;
 import ru.yandex.sharedlib.account.AccountDto;
 import ru.yandex.sharedlib.cash.CashProcessResponse;
 import ru.yandex.sharedlib.cash.CashRequest;
+import ru.yandex.sharedlib.notification.NotificationDto;
 import ru.yandex.sharedlib.transfer.TransferRequest;
-import ru.yandex.transfer.client.AccountsClient;
-import ru.yandex.transfer.client.BlockersClient;
-import ru.yandex.transfer.client.ConvertClient;
-import ru.yandex.transfer.client.NotificationsClient;
+import ru.yandex.transfer.client.*;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -42,7 +40,7 @@ class TransferServiceTest {
     private BlockersClient blockersClient;
 
     @Mock
-    private NotificationsClient notificationsClient;
+    private NotificationsKafkaClient notificationsClient;
 
     @Mock
     private ConvertClient convertClient;
@@ -65,8 +63,6 @@ class TransferServiceTest {
                 .value(new BigDecimal("100"))
                 .toLogin("bob")
                 .build();
-        when(notificationsClient.sendNotification(anyString(), anyString()))
-                .thenReturn(Mono.empty());
     }
 
     @Test
@@ -100,7 +96,7 @@ class TransferServiceTest {
 
         assertNotNull(resp);
         assertEquals(HttpStatus.FOUND, resp.getStatusCode());
-        verify(notificationsClient).sendNotification(eq(login), messageCaptor.capture());
+        verify(notificationsClient).sendNotificationsMessage(eq(login), any(NotificationDto.class));
         assertTrue(messageCaptor.getValue().contains("Transaction successful"));
     }
 
@@ -118,7 +114,7 @@ class TransferServiceTest {
         URI loc = resp.getHeaders().getLocation();
         assertNotNull(loc);
         assertTrue(loc.toString().contains("transferOtherErrors"));
-        verify(notificationsClient).sendNotification(eq(login), messageCaptor.capture());
+        verify(notificationsClient).sendNotificationsMessage(eq(login), any(NotificationDto.class));
         assertTrue(messageCaptor.getValue().contains("Transaction blocked: "));
     }
 
@@ -142,7 +138,7 @@ class TransferServiceTest {
         URI loc = resp.getHeaders().getLocation();
         assertNotNull(loc);
         assertTrue(loc.toString().contains("transferOtherErrors"));
-        verify(notificationsClient).sendNotification(eq(login), messageCaptor.capture());
+        verify(notificationsClient).sendNotificationsMessage(eq(login), any(NotificationDto.class));
         assertTrue(messageCaptor.getValue().contains("Account not found"));
     }
 
@@ -172,7 +168,7 @@ class TransferServiceTest {
         URI loc = resp.getHeaders().getLocation();
         assertNotNull(loc);
         assertTrue(loc.toString().contains("transferErrors"));
-        verify(notificationsClient).sendNotification(eq(login), messageCaptor.capture());
+        verify(notificationsClient).sendNotificationsMessage(eq(login), any(NotificationDto.class));
         assertTrue(messageCaptor.getValue().contains("Insufficient funds"));
     }
 }

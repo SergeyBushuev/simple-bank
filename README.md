@@ -36,6 +36,21 @@
 - DOCKER_REGISTRY={registy/username} 
 - DB_PASSWORD=postgres
 
-Запуск Jenkins `docker-compose up -d` из директории
+Запуск Jenkins `docker-compose up -d` из директории /jenkins/
 
 Запуск приложения в Jenkins через simple-bank-helm, по адресу `hhtp://localhost:8080`
+
+## Kafka:
+### Топики: 
+
+**topic-bank-notifications**:
+- Производители: `bank-cash`, `bank-transfer`
+- Потребитель: `bank-notifications`
+- Порядок сообщений: не гарантируется (unordered messages)
+- Обработка: потребитель возобновляет с последнего прочитанного offset
+
+**topic-bank-exchange**:
+- Производитель: `bank-exchange-generator` (генератор курсов)
+- Потребитель: `bank-exchange` (обновление курсов)
+- Порядок сообщений: строго упорядочен (ordered messages)
+- Обработка: потребитель может пропустить устаревшие сообщения

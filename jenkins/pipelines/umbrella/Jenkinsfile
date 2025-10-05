@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        K8S_NAMESPACE_DEV = 'simple-bank-dev'
-        K8S_NAMESPACE_TEST = 'simple-bank-test'
-        K8S_NAMESPACE_PROD = 'simple-bank-prod'
-        
+        K8S_NAMESPACE_DEV = 'bankapp-dev'
+        K8S_NAMESPACE_TEST = 'bankapp-test'
+        K8S_NAMESPACE_PROD = 'bankapp-prod'
+
         DOCKER_REGISTRY = credentials('DOCKER_REGISTRY')
         GITHUB_USERNAME = credentials('GITHUB_USERNAME')
         IMAGE_TAG = "${env.BUILD_NUMBER}"
@@ -24,7 +24,7 @@ pipeline {
     stages {
         stage('Инициализация') {
             steps {
-                echo "Запуск полного цикла сборки и деплоя simple-bank"
+                echo "Запуск полного цикла сборки и деплоя bankapp"
                 echo "Окружение: ${params.DEPLOY_ENV}"
             }
         }
@@ -103,30 +103,30 @@ pipeline {
                         """
                     }
                 }
-                stage('bank-exchange образ') {
+                stage('service-exchange образ') {
                     steps {
                         sh """
-                            docker build -f bank-exchange/Dockerfile \\
+                            docker build -f service-exchange/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/bank-exchange:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/service-exchange:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('bank-blocker образ') {
+                stage('service-blocker образ') {
                     steps {
                         sh """
-                            docker build -f bank-blocker/Dockerfile \\
+                            docker build -f service-blocker/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/bank-blocker:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/service-blocker:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('bank-notifications образ') {
+                stage('service-notifications образ') {
                     steps {
                         sh """
-                            docker build -f bank-notifications/Dockerfile \\
+                            docker build -f service-notifications/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/bank-notifications:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/service-notifications:${IMAGE_TAG} .
                         """
                     }
                 }
@@ -147,15 +147,15 @@ pipeline {
                 withCredentials([string(credentialsId: 'GHCR_TOKEN', variable: 'GHCR_TOKEN')]) {
                     sh """
                         echo \$GHCR_TOKEN | docker login ghcr.io -u ${GITHUB_USERNAME} --password-stdin
-                        
+
                         docker push ${DOCKER_REGISTRY}/service-accounts:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-apigw:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-cash:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-transfer:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-convert:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/bank-exchange:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/bank-blocker:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/bank-notifications:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/service-exchange:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/service-blocker:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/service-notifications:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-front:${IMAGE_TAG}
                     """
                 }
@@ -165,7 +165,11 @@ pipeline {
 
         stage('Подготовка Helm зависимостей') {
             steps {
-                sh "helm dependency build ./helm/simple-bank"
+                sh """
+                    helm repo add bitnami https://charts.bitnami.com/bitnami || true
+                    helm repo update
+                    helm dependency build ./helm/bankapp
+                """
             }
         }
 
@@ -180,17 +184,17 @@ pipeline {
                     } else if (params.DEPLOY_ENV == 'prod') {
                         namespace = K8S_NAMESPACE_PROD
                     }
-                    
+
                     sh """
                         # Удаляем конфликтующие Ingress ресурсы
                         kubectl delete ingress --all -n ${namespace} --ignore-not-found=true || true
-                        kubectl delete ingress --all -n simple-bank --ignore-not-found=true || true
+                        kubectl delete ingress --all -n bankapp --ignore-not-found=true || true
                     """
                 }
             }
         }
 
-        stage('Деплой Dev') {
+        stage('Деплой') {
             when {
                 anyOf {
                     expression { params.DEPLOY_ENV == 'dev' }
@@ -208,14 +212,15 @@ pipeline {
                     } else if (params.DEPLOY_ENV == 'prod') {
                         namespace = K8S_NAMESPACE_PROD
                     }
-                    
+
                     echo "Деплой в окружение ${params.DEPLOY_ENV} (namespace: ${namespace})"
-                    
+
                     sh """
-                        helm upgrade --install simple-bank ./helm/simple-bank \\
+                        helm upgrade --install bankapp ./helm/bankapp \\
                         --namespace ${namespace} \\
                         --create-namespace \\
-                        --timeout=300s \\
+                        --timeout=600s \\
+                        --wait \\
                         --set service-accounts.image.repository=${DOCKER_REGISTRY}/service-accounts \\
                         --set service-accounts.image.tag=${IMAGE_TAG} \\
                         --set service-gateway.image.repository=${DOCKER_REGISTRY}/service-apigw \\
@@ -226,14 +231,52 @@ pipeline {
                         --set service-transfer.image.tag=${IMAGE_TAG} \\
                         --set service-convert.image.repository=${DOCKER_REGISTRY}/service-convert \\
                         --set service-convert.image.tag=${IMAGE_TAG} \\
-                        --set bank-exchange.image.repository=${DOCKER_REGISTRY}/bank-exchange \\
-                        --set bank-exchange.image.tag=${IMAGE_TAG} \\
-                        --set bank-blocker.image.repository=${DOCKER_REGISTRY}/bank-blocker \\
-                        --set bank-blocker.image.tag=${IMAGE_TAG} \\
-                        --set bank-notifications.image.repository=${DOCKER_REGISTRY}/bank-notifications \\
-                        --set bank-notifications.image.tag=${IMAGE_TAG} \\
+                        --set service-exchange.image.repository=${DOCKER_REGISTRY}/service-exchange \\
+                        --set service-exchange.image.tag=${IMAGE_TAG} \\
+                        --set service-blocker.image.repository=${DOCKER_REGISTRY}/service-blocker \\
+                        --set service-blocker.image.tag=${IMAGE_TAG} \\
+                        --set service-notifications.image.repository=${DOCKER_REGISTRY}/service-notifications \\
+                        --set service-notifications.image.tag=${IMAGE_TAG} \\
                         --set service-front.image.repository=${DOCKER_REGISTRY}/service-front \\
                         --set service-front.image.tag=${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Проверка готовности Kafka') {
+            when {
+                anyOf {
+                    expression { params.DEPLOY_ENV == 'dev' }
+                    expression { params.DEPLOY_ENV == 'test' }
+                    expression { params.DEPLOY_ENV == 'prod' }
+                }
+            }
+            steps {
+                script {
+                    def namespace = ""
+                    if (params.DEPLOY_ENV == 'dev') {
+                        namespace = K8S_NAMESPACE_DEV
+                    } else if (params.DEPLOY_ENV == 'test') {
+                        namespace = K8S_NAMESPACE_TEST
+                    } else if (params.DEPLOY_ENV == 'prod') {
+                        namespace = K8S_NAMESPACE_PROD
+                    }
+
+                    echo "Ожидание готовности Kafka в ${namespace}..."
+
+                    sh """
+                        # Ожидаем готовности Kafka pod
+                        kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=kafka \\
+                            -n ${namespace} --timeout=300s || true
+
+                        # Проверяем статус Kafka
+                        echo "Статус Kafka pods:"
+                        kubectl get pods -l app.kubernetes.io/name=kafka -n ${namespace} || true
+
+                        # Проверяем Kafka service
+                        echo "Kafka services:"
+                        kubectl get svc -l app.kubernetes.io/name=kafka -n ${namespace} || true
                     """
                 }
             }
@@ -273,16 +316,25 @@ pipeline {
                 } else if (params.DEPLOY_ENV == 'prod') {
                     namespace = K8S_NAMESPACE_PROD
                 }
-                
+
                 echo "Итоговый статус деплоя в ${params.DEPLOY_ENV}:"
-                sh "kubectl get pods -n ${namespace} || true"
+                sh """
+                    echo "=== ВСЕ PODS ==="
+                    kubectl get pods -n ${namespace} || true
+
+                    echo "=== KAFKA PODS ==="
+                    kubectl get pods -l app.kubernetes.io/name=kafka -n ${namespace} || true
+
+                    echo "=== SERVICES ==="
+                    kubectl get svc -n ${namespace} || true
+                """
             }
         }
         success {
-            echo "Umbrella деплой simple-bank в ${params.DEPLOY_ENV} завершен успешно"
+            echo "Umbrella деплой bankapp в ${params.DEPLOY_ENV} завершен успешно"
         }
         failure {
-            echo "Umbrella деплой simple-bank в ${params.DEPLOY_ENV} завершился с ошибкой"
+            echo "Umbrella деплой bankapp в ${params.DEPLOY_ENV} завершился с ошибкой"
         }
     }
 }

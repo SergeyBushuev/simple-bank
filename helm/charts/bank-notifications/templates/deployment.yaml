@@ -89,6 +89,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "service-notifications.fullname" . }}-config
                   key: kafka-topics.notifications-topic
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "service-accounts.fullname" . }}-config
+                  key: zipkin-tracing-endpoint
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

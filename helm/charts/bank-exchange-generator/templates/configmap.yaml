@@ -14,3 +14,5 @@ data:
 
   # Kafka Configuration
   kafka-brokers: "bankapp-kafka:9092"
+
+  zipkin-tracing-endpoint: "http://zipkin.monitoring.svc.cluster.local:9411/api/v2/spans"

@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bank-blocker.fullname" . }}
+  name: {{ include "zipkin-chart.fullname" . }}
   labels:
-    {{- include "bank-blocker.labels" . | nindent 4 }}
+    {{- include "zipkin-chart.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "bank-blocker.selectorLabels" . | nindent 6 }}
+      {{- include "zipkin-chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,7 +18,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "bank-blocker.labels" . | nindent 8 }}
+        {{- include "zipkin-chart.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +27,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "bank-blocker.serviceAccountName" . }}
+      serviceAccountName: {{ include "zipkin-chart.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -44,18 +44,6 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-          env:
-            # OAuth2 Configuration from ConfigMap
-            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "bank-blocker.fullname" . }}-config
-                  key: oauth2-resource-server-jwk-set-uri
-            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "service-accounts.fullname" . }}-config
-                  key: zipkin-tracing-endpoint
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -72,6 +60,11 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          env:
+            - name: STORAGE_TYPE
+              value: {{ .Values.env.storageType | quote }}
+            - name: JAVA_OPTS
+              value: {{ .Values.env.javaOpts | quote }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

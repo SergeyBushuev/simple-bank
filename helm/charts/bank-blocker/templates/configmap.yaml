@@ -7,3 +7,5 @@ metadata:
 data:
   # OAuth2 Configuration (minimal for blocker service)
   oauth2-resource-server-jwk-set-uri: "http://simple-bank-keycloak:8080/realms/simple-bank/protocol/openid-connect/certs"
+
+  zipkin-tracing-endpoint: "http://zipkin.monitoring.svc.cluster.local:9411/api/v2/spans"

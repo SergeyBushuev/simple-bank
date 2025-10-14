@@ -33,6 +33,14 @@ dependencies {
     implementation("org.postgresql:r2dbc-postgresql:1.0.7.RELEASE")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.apache.logging.log4j:log4j-layout-template-json:2.24.3")
+    implementation("org.apache.kafka:kafka-clients:3.9.0")
+    implementation("com.github.danielwegener:logback-kafka-appender:0.2.0-RC2")
 
     implementation(project(":commons"))
 
@@ -47,6 +55,7 @@ dependencies {
     testImplementation("io.r2dbc:r2dbc-h2")
     testImplementation("com.h2database:h2")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.withType<Test> {

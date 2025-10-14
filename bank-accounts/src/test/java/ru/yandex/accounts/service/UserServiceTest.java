@@ -1,5 +1,7 @@
 package ru.yandex.accounts.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +16,6 @@ import reactor.core.publisher.Mono;
 import ru.yandex.accounts.model.User;
 import ru.yandex.accounts.repository.UserRepository;
 import ru.yandex.sharedlib.account.UserDto;
-import ru.yandex.sharedlib.settings.EditAccountsRequest;
 import ru.yandex.sharedlib.settings.EditPasswordRequest;
 import ru.yandex.sharedlib.signup.SignupRequest;
 
@@ -24,9 +25,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -36,7 +37,8 @@ class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-
+    @Mock
+    private MeterRegistry metrics;
     @InjectMocks
     private UserService userService;
 
@@ -92,6 +94,13 @@ class UserServiceTest {
     @Test
     void findByUsername_OkTest() {
         when(userRepository.findByLogin("user1")).thenReturn(Mono.just(existingUser));
+        Counter mockCounter = mock(Counter.class);
+
+        when(metrics.counter(
+                eq("user_successful_logins"),
+                eq("login"),
+                anyString()
+        )).thenReturn(mockCounter);
 
         UserDto dto = userService.findByUsername("user1").block();
         assertNotNull(dto);
@@ -104,9 +113,20 @@ class UserServiceTest {
     @Test
     void findByUsername_NotFoundTest() {
         when(userRepository.findByLogin("nope")).thenReturn(Mono.empty());
+        Counter mockCounter = mock(Counter.class);
 
+        when(metrics.counter(
+                eq("user_failed_logins"),
+                eq("login"),
+                anyString()
+        )).thenReturn(mockCounter);
         assertThrows(UsernameNotFoundException.class,
                 () -> userService.findByUsername("nope").block());
+        verify(metrics, times(1)).counter(
+                eq("user_failed_logins"),
+                eq("login"),
+                anyString()
+        );
     }
 
     @Test

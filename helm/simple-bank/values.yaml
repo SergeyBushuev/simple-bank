@@ -82,10 +82,10 @@ postgresql-notifications:
     password: postgres
 
 # Microservices
-service-gateway:
+bank-gateway:
   enabled: true
   image:
-    repository: service-gateway-app
+    repository: bank-gateway-app
     tag: latest
   service:
     port: 8080

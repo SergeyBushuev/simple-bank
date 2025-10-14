@@ -57,39 +57,39 @@ pipeline {
 
         stage('Сборка Docker образов') {
             parallel {
-                stage('service-accounts образ') {
+                stage('bank-accounts образ') {
                     steps {
                         sh """
-                            docker build -f service-accounts/Dockerfile \\
+                            docker build -f bank-accounts/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-accounts:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/bank-accounts:${IMAGE_TAG} .
                         """
                     }
                 }
                 stage('service-apigw образ') {
                     steps {
                         sh """
-                            docker build -f service-gateway/Dockerfile \\
+                            docker build -f bank-gateway/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
                             -t ${DOCKER_REGISTRY}/service-apigw:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('service-cash образ') {
+                stage('bank-cash образ') {
                     steps {
                         sh """
-                            docker build -f service-cash/Dockerfile \\
+                            docker build -f bank-cash/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-cash:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/bank-cash:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('service-transfer образ') {
+                stage('bank-transfer образ') {
                     steps {
                         sh """
-                            docker build -f service-transfer/Dockerfile \\
+                            docker build -f bank-transfer/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-transfer:${IMAGE_TAG} \\
+                            -t ${DOCKER_REGISTRY}/bank-transfer:${IMAGE_TAG} \\
                             .
                         """
                     }
@@ -103,39 +103,39 @@ pipeline {
                         """
                     }
                 }
-                stage('service-exchange образ') {
+                stage('bank-exchange-generator образ') {
                     steps {
                         sh """
-                            docker build -f service-exchange/Dockerfile \\
+                            docker build -f bank-exchange-generator/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-exchange:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/bank-exchange-generator:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('service-blocker образ') {
+                stage('bank-blocker образ') {
                     steps {
                         sh """
-                            docker build -f service-blocker/Dockerfile \\
+                            docker build -f bank-blocker/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-blocker:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/bank-blocker:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('service-notifications образ') {
+                stage('bank-notifications образ') {
                     steps {
                         sh """
-                            docker build -f service-notifications/Dockerfile \\
+                            docker build -f bank-notifications/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-notifications:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/bank-notifications:${IMAGE_TAG} .
                         """
                     }
                 }
-                stage('service-front образ') {
+                stage('bank-front образ') {
                     steps {
                         sh """
-                            docker build -f service-front/Dockerfile \\
+                            docker build -f bank-front/Dockerfile \\
                             --build-arg JAR_FILE=build/libs/*.jar \\
-                            -t ${DOCKER_REGISTRY}/service-front:${IMAGE_TAG} .
+                            -t ${DOCKER_REGISTRY}/bank-front:${IMAGE_TAG} .
                         """
                     }
                 }
@@ -148,15 +148,15 @@ pipeline {
                     sh """
                         echo \$GHCR_TOKEN | docker login ghcr.io -u ${GITHUB_USERNAME} --password-stdin
 
-                        docker push ${DOCKER_REGISTRY}/service-accounts:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-accounts:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-apigw:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/service-cash:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/service-transfer:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-cash:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-transfer:${IMAGE_TAG}
                         docker push ${DOCKER_REGISTRY}/service-convert:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/service-exchange:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/service-blocker:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/service-notifications:${IMAGE_TAG}
-                        docker push ${DOCKER_REGISTRY}/service-front:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-exchange-generator:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-blocker:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-notifications:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/bank-front:${IMAGE_TAG}
                     """
                 }
             }
@@ -240,24 +240,24 @@ pipeline {
                         --create-namespace \\
                         --timeout=600s \\
                         --wait \\
-                        --set service-accounts.image.repository=${DOCKER_REGISTRY}/service-accounts \\
-                        --set service-accounts.image.tag=${IMAGE_TAG} \\
-                        --set service-gateway.image.repository=${DOCKER_REGISTRY}/service-apigw \\
-                        --set service-gateway.image.tag=${IMAGE_TAG} \\
-                        --set service-cash.image.repository=${DOCKER_REGISTRY}/service-cash \\
-                        --set service-cash.image.tag=${IMAGE_TAG} \\
-                        --set service-transfer.image.repository=${DOCKER_REGISTRY}/service-transfer \\
-                        --set service-transfer.image.tag=${IMAGE_TAG} \\
+                        --set bank-accounts.image.repository=${DOCKER_REGISTRY}/bank-accounts \\
+                        --set bank-accounts.image.tag=${IMAGE_TAG} \\
+                        --set bank-gateway.image.repository=${DOCKER_REGISTRY}/service-apigw \\
+                        --set bank-gateway.image.tag=${IMAGE_TAG} \\
+                        --set bank-cash.image.repository=${DOCKER_REGISTRY}/bank-cash \\
+                        --set bank-cash.image.tag=${IMAGE_TAG} \\
+                        --set bank-transfer.image.repository=${DOCKER_REGISTRY}/bank-transfer \\
+                        --set bank-transfer.image.tag=${IMAGE_TAG} \\
                         --set service-convert.image.repository=${DOCKER_REGISTRY}/service-convert \\
                         --set service-convert.image.tag=${IMAGE_TAG} \\
-                        --set service-exchange.image.repository=${DOCKER_REGISTRY}/service-exchange \\
-                        --set service-exchange.image.tag=${IMAGE_TAG} \\
-                        --set service-blocker.image.repository=${DOCKER_REGISTRY}/service-blocker \\
-                        --set service-blocker.image.tag=${IMAGE_TAG} \\
-                        --set service-notifications.image.repository=${DOCKER_REGISTRY}/service-notifications \\
-                        --set service-notifications.image.tag=${IMAGE_TAG} \\
-                        --set service-front.image.repository=${DOCKER_REGISTRY}/service-front \\
-                        --set service-front.image.tag=${IMAGE_TAG}
+                        --set bank-exchange-generator.image.repository=${DOCKER_REGISTRY}/bank-exchange-generator \\
+                        --set bank-exchange-generator.image.tag=${IMAGE_TAG} \\
+                        --set bank-blocker.image.repository=${DOCKER_REGISTRY}/bank-blocker \\
+                        --set bank-blocker.image.tag=${IMAGE_TAG} \\
+                        --set bank-notifications.image.repository=${DOCKER_REGISTRY}/bank-notifications \\
+                        --set bank-notifications.image.tag=${IMAGE_TAG} \\
+                        --set bank-front.image.repository=${DOCKER_REGISTRY}/bank-front \\
+                        --set bank-front.image.tag=${IMAGE_TAG}
                     """
                 }
             }

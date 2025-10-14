@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: service-gateway
+    name: bank-gateway
 
   main:
     allow-bean-definition-overriding: true
@@ -13,7 +13,7 @@ spring:
         webflux:
           routes:
             - id: front-route
-              uri: http://simple-bank-service-front:8079
+              uri: http://simple-bank-bank-front:8079
               predicates:
                 - Path=/
               filters:
@@ -21,7 +21,7 @@ spring:
                 - UserHeader
 
             - id: front-main-route
-              uri: http://simple-bank-service-front:8079
+              uri: http://simple-bank-bank-front:8079
               predicates:
                 - Path=/main
               filters:
@@ -29,7 +29,7 @@ spring:
                 - UserHeader
 
             - id: accounts-post-signup-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/signup
                 - Method=POST
@@ -37,63 +37,63 @@ spring:
                 - TokenRelay=simple-bank-client
 
             - id: edit-password-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/user/{login}/editPassword
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: exchange-route
-              uri: http://simple-bank-service-exchange:8085
+              uri: http://simple-bank-bank-exchange-generator:8085
               predicates:
                 - Path=/api/rates
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: edit-accounts-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/user/{login}/editUserAccounts
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: cash-route
-              uri: http://simple-bank-service-cash:8086
+              uri: http://simple-bank-bank-cash:8086
               predicates:
                 - Path=/user/{login}/cash
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: notifications-route
-              uri: http://simple-bank-service-notifications:8087
+              uri: http://simple-bank-bank-notifications:8087
               predicates:
                 - Path=/api/{login}/notifications
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: transfer-route
-              uri: http://simple-bank-service-transfer:8082
+              uri: http://simple-bank-bank-transfer:8082
               predicates:
                 - Path=/user/{login}/transfer
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: blocker-route
-              uri: http://simple-bank-service-blocker:8083
+              uri: http://simple-bank-bank-blocker:8083
               predicates:
                 - Path=/api/{time}/block
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: cash-balance-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/{login}/cash
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: get-account-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/{login}/account/{currency}
               filters:
@@ -107,28 +107,28 @@ spring:
                 - TokenRelay=simple-bank-client
 
             - id: accounts-user-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/{login}/user
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: accounts-user-accounts-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/{login}/accounts
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: accounts-users-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/users
               filters:
                 - TokenRelay=simple-bank-client
 
             - id: accounts-currencies-route
-              uri: http://simple-bank-service-accounts:8084
+              uri: http://simple-bank-bank-accounts:8084
               predicates:
                 - Path=/api/currencies
               filters:
@@ -181,5 +181,5 @@ logging:
     org.springframework.security: info
 
 services:
-  service-gateway:
-    name: "simple-bank-service-gateway:8080"
+  bank-gateway:
+    name: "simple-bank-bank-gateway:8080"

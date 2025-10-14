@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: service-convert
+    name: bank-exchange
 
   main:
     allow-bean-definition-overriding: true
@@ -12,8 +12,8 @@ spring:
       server:
         webflux:
           routes:
-            - id: service-front-route
-              uri: http://simple-bank-service-gateway:8080
+            - id: bank-front-route
+              uri: http://simple-bank-bank-gateway:8080
               predicates:
                 - Path=/
               filters:
@@ -82,5 +82,5 @@ logging:
 
 
 services:
-  service-gateway:
-    name: "simple-bank-service-gateway:8080"
+  bank-gateway:
+    name: "simple-bank-bank-gateway:8080"

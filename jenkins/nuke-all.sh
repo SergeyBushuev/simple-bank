@@ -49,15 +49,15 @@ docker stop jenkins && docker rm jenkins || true
 docker volume rm jenkins_home || true
 
 echo "Removing images..."
-docker image rm ${DOCKER_REGISTRY}/service-accounts || true
+docker image rm ${DOCKER_REGISTRY}/bank-accounts || true
 docker image rm ${DOCKER_REGISTRY}/service-apigw || true
-docker image rm ${DOCKER_REGISTRY}/service-cash || true
-docker image rm ${DOCKER_REGISTRY}/service-transfer || true
+docker image rm ${DOCKER_REGISTRY}/bank-cash || true
+docker image rm ${DOCKER_REGISTRY}/bank-transfer || true
 docker image rm ${DOCKER_REGISTRY}/service-convert || true
 docker image rm ${DOCKER_REGISTRY}/bank-exchange || true
 docker image rm ${DOCKER_REGISTRY}/bank-blocker || true
 docker image rm ${DOCKER_REGISTRY}/bank-notifications || true
-docker image rm ${DOCKER_REGISTRY}/service-front || true
+docker image rm ${DOCKER_REGISTRY}/bank-front || true
 docker image rm jenkins/jenkins:lts-jdk21 || true
 
 echo "Pruning system..."

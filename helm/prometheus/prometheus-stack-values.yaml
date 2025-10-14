@@ -1,0 +1,23 @@
+grafana:
+  adminPassword: prom-operator
+
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
+  dashboards:
+    default:
+      spring-boot-observability:
+        gnetId: 19004
+        revision: 2
+        datasource: Prometheus
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    podMonitorNamespaceSelector: {}

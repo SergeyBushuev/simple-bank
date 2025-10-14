@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: service-notifications
+    name: bank-notifications
 
   main:
     allow-bean-definition-overriding: true
@@ -62,5 +62,5 @@ logging:
     org.springframework.security: info
 
 services:
-  service-gateway:
-    name: "simple-bank-service-gateway:8080"
+  bank-gateway:
+    name: "simple-bank-bank-gateway:8080"

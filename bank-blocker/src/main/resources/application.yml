@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: service-blocker
+    name: bank-blocker
   main:
     allow-bean-definition-overriding: true
   security:
@@ -30,5 +30,5 @@ logging:
     org.springframework.security: info
 
 services:
-  service-gateway:
-    name: "simple-bank-service-gateway:8080"
+  bank-gateway:
+    name: "simple-bank-bank-gateway:8080"

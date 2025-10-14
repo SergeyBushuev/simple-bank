@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(
         properties = {
                 "kafka-topics.notifications-topic=topic-bankapp-notifications",
-                "spring.application.name=service-notifications-test",
+                "spring.application.name=bank-notifications-test",
                 "spring.liquibase.enabled=false",
                 "spring.security.oauth2.resourceserver.jwt.issuer-uri=",
                 "spring.security.oauth2.resourceserver.jwt.jwk-set-uri="},

@@ -82,17 +82,17 @@ spec:
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "service-notifications.fullname" . }}-config
+                  name: {{ include "bank-notifications.fullname" . }}-config
                   key: kafka-brokers
             - name: KAFKA_TOPICS_NOTIFICATIONS_TOPIC
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "service-notifications.fullname" . }}-config
+                  name: {{ include "bank-notifications.fullname" . }}-config
                   key: kafka-topics.notifications-topic
             - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "service-accounts.fullname" . }}-config
+                  name: {{ include "bank-accounts.fullname" . }}-config
                   key: zipkin-tracing-endpoint
           {{- with .Values.livenessProbe }}
           livenessProbe:

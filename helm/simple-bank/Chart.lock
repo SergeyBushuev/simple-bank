@@ -14,8 +14,8 @@ dependencies:
 - name: postgresql-notifications
   repository: file://../charts/postgresql-notifications
   version: 0.1.0
-- name: service-gateway
-  repository: file://../charts/service-gateway
+- name: bank-gateway
+  repository: file://../charts/bank-gateway
   version: 0.1.0
 - name: bank-front
   repository: file://../charts/bank-front

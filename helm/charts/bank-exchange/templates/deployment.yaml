@@ -91,7 +91,7 @@ spec:
             - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
               valueFrom:
                 configMapKeyRef:
-                  name: {{ include "service-accounts.fullname" . }}-config
+                  name: {{ include "bank-accounts.fullname" . }}-config
                   key: zipkin-tracing-endpoint
           {{- with .Values.livenessProbe }}
           livenessProbe:

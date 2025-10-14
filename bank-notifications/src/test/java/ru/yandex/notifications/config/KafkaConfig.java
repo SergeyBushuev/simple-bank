@@ -32,7 +32,7 @@ public class KafkaConfig {
 
     @Bean
     public ConsumerFactory<String, Object> consumerFactory(EmbeddedKafkaBroker embeddedKafkaBroker) {
-        Map<String, Object> props = KafkaTestUtils.consumerProps("service-notifications-test.notifications-consumer-group", "false", embeddedKafkaBroker);
+        Map<String, Object> props = KafkaTestUtils.consumerProps("bank-notifications-test.notifications-consumer-group", "false", embeddedKafkaBroker);
         props.put("key.deserializer", org.apache.kafka.common.serialization.StringDeserializer.class);
         props.put("value.deserializer", org.springframework.kafka.support.serializer.JsonDeserializer.class);
         props.put("spring.json.trusted.packages", "ru.yandex.*");

@@ -46,10 +46,10 @@ dependencies:
     condition: postgresql-notifications.enabled
 
   # Service Dependencies
-  - name: service-gateway
+  - name: bank-gateway
     version: "0.1.0"
-    repository: "file://../charts/service-gateway"
-    condition: service-gateway.enabled
+    repository: "file://../charts/bank-gateway"
+    condition: bank-gateway.enabled
   
   - name: bank-front
     version: "0.1.0"

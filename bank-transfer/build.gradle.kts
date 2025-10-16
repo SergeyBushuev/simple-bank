@@ -28,6 +28,11 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
     implementation("org.springframework.kafka:spring-kafka:3.3.8")
 
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.apache.logging.log4j:log4j-layout-template-json:2.24.3")
+    implementation("org.apache.kafka:kafka-clients:3.9.0")
+    implementation("com.github.danielwegener:logback-kafka-appender:0.2.0-RC2")
+
     implementation(project(":commons"))
 
     compileOnly("org.projectlombok:lombok")

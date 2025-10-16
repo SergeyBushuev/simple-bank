@@ -34,6 +34,7 @@ dependencies {
     implementation("com.github.danielwegener:logback-kafka-appender:0.2.0-RC2")
     implementation(project(":commons"))
 
+    compileOnly ("jakarta.servlet:jakarta.servlet-api:6.0.0")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

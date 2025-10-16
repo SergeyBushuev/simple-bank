@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":commons"))
 
     runtimeOnly("org.postgresql:postgresql:42.7.2")
+    compileOnly ("jakarta.servlet:jakarta.servlet-api:6.0.0")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

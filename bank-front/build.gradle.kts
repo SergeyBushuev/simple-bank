@@ -35,6 +35,7 @@ dependencies {
 
     implementation(project(":commons"))
 
+    compileOnly ("jakarta.servlet:jakarta.servlet-api:6.0.0")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 

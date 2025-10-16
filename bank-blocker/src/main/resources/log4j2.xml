@@ -6,7 +6,7 @@
         </Console>
         <Kafka name="Kafka" topic="bankapp-logs">
             <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json">
-                <EventTemplateAdditionalField key="service.name" value="bank-accounts"/>
+                <EventTemplateAdditionalField key="service.name" value="bank-blocker"/>
                 <EventTemplateAdditionalField key="service.environment" value="${env:ENVIRONMENT:-dev}"/>
             </JsonTemplateLayout>
             <Property name="bootstrap.servers">bankapp-kafka:9092</Property>

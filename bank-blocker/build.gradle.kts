@@ -24,7 +24,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("io.zipkin.reporter2:zipkin-reporter-brave")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.apache.logging.log4j:log4j-layout-template-json:2.24.3")
+    implementation("org.apache.kafka:kafka-clients:3.9.0")
+    implementation("com.github.danielwegener:logback-kafka-appender:0.2.0-RC2")
     implementation(project(":commons"))
 
     compileOnly("org.projectlombok:lombok")

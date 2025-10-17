@@ -1,5 +1,6 @@
 package ru.yandex.transfer.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class TransferService {
     private final BlockersClient blockersClient;
     private final NotificationsKafkaClient notificationsProducer;
     private final ConvertClient convertClient;
+    private final MeterRegistry metrics;
 
     private static final String SUCCESS_MESSAGE = "Transaction successful: ";
     private static final String FAIL_MESSAGE = "Transfer error: ";
@@ -55,6 +57,7 @@ public class TransferService {
         return blockersClient.sendBlockerRequest(value)
                 .flatMap(blocked -> {
                     if (blocked) {
+                        metrics.counter("transfer_blocked", "login", login).increment();
                         notificationsProducer.sendNotificationsMessage(login, new NotificationDto(login, formatMessage(BLOCKED_MESSAGE, transferRequest)));
                         handleErrors(BLOCKED_MESSAGE, login, transferRequest.getToLogin(), transferErrors, transferOtherErrors);
                         return redirectToMain(transferErrors, transferOtherErrors);
@@ -80,8 +83,10 @@ public class TransferService {
                                     .doOnSuccess(v -> {
                                         String message = formatMessage(SUCCESS_MESSAGE, transferRequest);
                                         notificationsProducer.sendNotificationsMessage(login, new NotificationDto(login, message));
+                                        metrics.counter("transfer_success", "login", login).increment();
                                     }))
                             .onErrorResume(ex -> {
+                                metrics.counter("transfer_error", "login", login).increment();
                                 String errorMessage = formatMessage("Ошибка перевода: " + ex.getMessage(), transferRequest);
                                 notificationsProducer.sendNotificationsMessage(login, new NotificationDto(login, errorMessage));
                                 return redirectToMain(transferErrors, transferOtherErrors);

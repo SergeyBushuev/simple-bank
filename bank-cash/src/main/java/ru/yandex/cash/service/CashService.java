@@ -1,5 +1,6 @@
 package ru.yandex.cash.service;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class CashService {
     private final AccountsClient accountsClient;
     private final BlockersClient blockersClient;
     private final KafkaNotificationService notificationsClient;
+    private final MeterRegistry metrics;
 
     private static final String SUCCESS_MESSAGE = "Transaction successful: ";
     private static final String FAIL_MESSAGE = "Transfer error: ";
@@ -55,6 +57,7 @@ public class CashService {
                                 })
                                 .flatMap(response -> redirectToMain(response.getBody().getErrors()));
                     } else {
+                        metrics.counter("cash_operation_blocked", "login", login).increment();
                         notificationsClient.sendNotification(login, new NotificationDto(login, formatMessage(BLOCKED_MESSAGE, cashRequest)));
                         return redirectToMain(List.of(BLOCKED_MESSAGE));
                     }
@@ -70,6 +73,7 @@ public class CashService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/");
 
         if (errors != null) {
+            metrics.counter("cash_operation_error").increment();
             builder.queryParam("cashErrors", errors);
         }
 
